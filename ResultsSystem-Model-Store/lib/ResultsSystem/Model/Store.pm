@@ -1,21 +1,26 @@
 
 =head1 NAME
 
-ResultsSystem::Model::Store::Divisions
+ResultsSystem::Model::Store - This module carries out operations on the modules in the store.
 
 =cut
 
 =head1 SYNOPSIS
 
+  $f = Store->new( -logger => $logger, -configuration => $configuration,
+    -fixture_list_model => $list, -store_divisions_model => $divisions );
+
 =cut
 
 =head1 DESCRIPTION
+
+This module carries out operations on the modules in the store.
 
 =cut
 
 =head1 INHERITS FROM
 
-
+L<ResultsSystem::Model|http://www.results_system_nfcca.com:8088/ResultsSystem/Model>
 
 =cut
 
@@ -23,38 +28,35 @@ ResultsSystem::Model::Store::Divisions
 
 =cut
 
-package ResultsSystem::Model::Store::Divisions;
+package ResultsSystem::Model::Store;
 
 use strict;
 use warnings;
 use Carp;
 
-use XML::Simple;
-use Sort::Maker;
-use List::MoreUtils qw/ first_value any /;
-use Regexp::Common qw /whitespace/;
-use Data::Dumper;
+our $VERSION = 0.01;
+
+#use Regexp::Common;
+use List::MoreUtils qw/any/;
 use Params::Validate qw/:all/;
+
+use Data::Dumper;
 
 use ResultsSystem::Exception;
 
+use ResultsSystem::Model;
+use parent qw/ResultsSystem::Model/;
+
 =head2 new
 
-Constructor for the ResultsSystem::Model::Store::Divisions object. Optionally accepts the full filename
-of the divisions configuration file as an argument. Does not read the file at this point.
+Constructor for the module. Accepts one parameter which
+is the filename of the csv file to be read.
 
-If -full_filename is not provided, then it must be set explicitly before the file 
-can be read.
+$f = Store->new( -logger => $logger, -configuration => $configuration, 
+  -fixture_list_model => $list, -store_divisions_model => $divisions );
 
-  $c = ResultsSystem::Model::Store::Divisions->new( 
-    -full_filename => "/a/b/divisions.xml", -logger => $logger );
-
-or 
-
-  $c = ResultsSystem::Model::Store::Divisions->new(-logger => $logger);
-  $c->set_full_filename("/a/b/divisions.xml");
-
-Requires -logger
+The fixtures file is processed as part of the object creation process if a full filename has been provided.
+Otherwise it is not processed until the full filename is set and read_file is called.
 
 =cut
 
@@ -65,454 +67,331 @@ sub new {
   my ( $class, $args ) = @_;
   my $self = {};
   bless $self, $class;
-  my $err = 0;
 
-  $self->set_logger( $args->{-logger} );
-
-  $err = $self->set_full_filename( $args->{-full_filename} ) if $args->{-full_filename};
+  $self->set_arguments(
+    [ qw/store_divisions_model fixture_list_model
+        week_data_reader_model_factory logger configuration/
+    ],
+    $args
+  );
 
   return $self;
 }
 
-=head2 set_full_filename
+=head2 get_all_fixture_lists
 
-Sets the full filename of the configuration file. Filters out
-characters other than alphanumeric characters, "_", ".", or "/".
+Returns a hash ref of csv file name and fixtures for all divisions.
+
+          'U15S.csv' => [
+                        [
+                          '1-May',
+                          [
+                            {
+                              'away' => 'Langley Manor',
+                              'home' => 'Redlynch & Hale'
+                            },
+                          ]
+                        ],
+                      ],
+          'U13N.csv' => [
+                        [
+                          '1-May',
+                          [
+                            {
+                              'away' => 'Bramshaw',
+                              'home' => 'Langley Manor 1'
+                            },
+                          ]
+                        ],
+                      ]
 
 =cut
 
-#***************************************
-sub set_full_filename {
-
-  #***************************************
+sub get_all_fixture_lists {
   my $self = shift;
-  $self->{FULL_FILENAME} = shift;
-  return $self;
-}
 
-=head2 read_file
+  my @divisions = $self->get_store_divisions_model->get_menu_names;
 
-Read the divisions file. Returns an error if the file doesn't exist or the read fails.
+  my $fl = $self->get_fixture_list_model;
 
-$err = $c->read_file();
+  my $dir = $self->get_configuration->get_path( '-divisions_file_dir' => 1 );
 
-Uses the full filename given by $self->_get_full_filename().
+  my $all = {};
 
-=cut
+  for my $d (@divisions) {
+    $fl->set_full_filename( join( '/', $dir, $d->{csv_file} ) );
+    $fl->read_file;
+    $all->{ $d->{csv_file} } = $fl->get_all_fixtures;
+  }
 
-#***************************************
-sub read_file {
-
-  #***************************************
-  my $self = shift;
-  my $err  = 0;
-
-  $err = $self->_read_file();
-  return $err if $err;
-
-  return $err;
-}
-
-=head2 set_logger
-
-=cut
-
-sub set_logger {
-  my ( $self, $logger ) = @_;
-  $self->{LOGGER} = $logger;
-  return $self;
+  return $all;
 }
 
 =head2 get_menu_names
 
-Returns a list of hash references sorted by menu_position. Each hash reference has 3 elements: menu_position, menu_name and csv_file.
-
- @x = $c->get_menu_names();
- print $x[2]->{menu_position} . "\n";
+Calls the get_menu_names method of L<ResultsSystem::Model::Store::Divisions>
+and returns the result.
 
 =cut
 
-#***************************************
 sub get_menu_names {
-
-  #***************************************
   my $self = shift;
-  my $tags = $self->_get_tags();
-  my @sorted_list;
-  my $div_array_ref = $tags->{divisions}[0]{division};
-  if ( !$div_array_ref ) {
-    return;
-  }
-  my @div_array = @$div_array_ref;
-
-  # print $div_array[1]{menu_position}[0] . "\n";
-
-  foreach my $d (@div_array) {
-    my %h = (
-      menu_position => $d->{menu_position}[0],
-      menu_name     => $d->{menu_name}[0],
-      csv_file      => $d->{csv_file}[0]
-    );
-    $h{menu_position} = $self->_trim( $h{menu_position} );
-    $h{menu_name}     = $self->_trim( $h{menu_name} );
-    $h{csv_file}      = $self->_trim( $h{csv_file} );
-    push @sorted_list, \%h;
-  }
-
-  my $sorter = make_sorter(
-    qw( ST ),
-    number => {
-      code       => '$_->{menu_position}',
-      descending => 0
-    }
-  );
-  @sorted_list = $sorter->(@sorted_list);
-  return @sorted_list;
-
+  return $self->get_store_divisions_model->get_menu_names;
 }
 
-=head2 get_name
+=head2 get_all_week_results_for_division
 
-This method returns the hash reference for the csv_file or menu_name passed as an argument.
+Accepts the name of the csv_file for the division and returns a
+list of the WeekResults::Reader objects for the division.
 
- $h_ref = $c->get_name( -menu_name => "County 1" );
- print $h_ref->{csv_file} . "\n";
- 
- $h_ref = $c->get_name( -cev_file => "CD1.csv" );
- print $h_ref->{menu_name} . "\n";
+my $list = $self->get_all_week_results_for_division('U9.csv');
+
+my $list = $self->get_all_week_results_for_division();
+
+If the csv file is not provided, it will try the one in the configuration
+(get_configuration->get_csv_file).
 
 =cut
 
-#***************************************
-sub get_name {
+sub get_all_week_results_for_division {
+  my ( $self, $csv_file ) = validate_pos( @_, 1, 0 );
 
-  #***************************************
-  my $self = shift;
-  my %args = validate( @_, { -menu_name => 0, -csv_file => 0 } );
-  my $t;
+  $csv_file ||= $self->get_configuration->get_csv_file;
+  my $files = $self->_get_all_week_files($csv_file);
 
-  my @list = $self->get_menu_names;
-  if ( $args{-menu_name} ) {
-    $t = first_value { $_->{menu_name} eq $args{-menu_name} } @list;
+  return $self->_extract_data($files);
+}
+
+=head2 get_dates_and_result_filenames_for_division
+
+  $store->get_dates_and_result_filenames_for_division('U9N.csv'),
+
+Should return
+
+  [ { file =>
+        '/home/duncan/git/results_system/forks/nfcca/results_system/' 
+        . 'fixtures/nfcca/2017/U9N_1-May.dat',
+      matchdate => '1-May'
+    },
+    { file =>
+        '/home/duncan/git/results_system/forks/nfcca/results_system/' 
+        . 'fixtures/nfcca/2017/U9N_8-May.dat',
+      matchdate => '8-May'
+    },
+    { file =>
+        '/home/duncan/git/results_system/forks/nfcca/results_system/' 
+        . 'fixtures/nfcca/2017/U9N_15-May.dat',
+      matchdate => '15-May'
+    }
+  ],
+
+=cut
+
+sub get_dates_and_result_filenames_for_division {
+  my ( $self, $csv_file ) = validate_pos( @_, 1, { regex => qr/\.csv$/x } );
+  my $files           = $self->_get_all_week_files($csv_file);
+  my $files_and_dates = [];
+  foreach my $f (@$files) {
+    my $d = $self->_extract_date_from_result_filename($f);
+    push( @$files_and_dates, { 'matchdate' => $d, 'file' => $f } );
   }
-  else {
-    $t = first_value { $_->{csv_file} eq $args{-csv_file} } @list;
-  }
-  return $t;    # Hash ref
+  return $files_and_dates;
 }
 
 =head1 INTERNAL (PRIVATE) METHODS
 
 =cut
 
-=head2 logger
+=head2 _extract_date_from_result_filename
+
+  $self->_extract_date_from_result_filename('County1_28-Jun.dat');
+
+Should return '28-Jun'.
 
 =cut
 
-sub logger {
-  my $self = shift;
-  return $self->{LOGGER};
-}
-
-=head2 _trim
-
-Remove the leading and trailing whitespace from a string passed as as argument.
-
-$s = $c->_trim( $s );
-
-=cut
-
-#***************************************
-sub _trim {
-
-  #***************************************
-  my $self = shift;
-  my $s    = shift;
-  return $s if !defined $s;
-  $s =~ s/$RE{ws}{crop}//xg;
-
-  #$s =~ s/^\s*([^\s])/$1/;
-  #$s =~ s/([^\s])\s*$/$1/;
-  return $s;
-}
-
-=head2 _get_tags
-
-Internal method which gets the full data structure as read
-from the configuration file.
-
-=cut
-
-#***************************************
-sub _get_tags {
-
-  #***************************************
-  my $self = shift;
+sub _extract_date_from_result_filename {
+  my ( $self, $result_filename ) = validate_pos( @_, 1, { regex => qr/\.dat$/x } );
+  my ($d) = $result_filename =~ m/_(\d{1,2}\D[A-Z][a-z]{2})\.dat$/x;
   croak(
     ResultsSystem::Exception->new(
-      'NO_TAGS_DEFINED', 'No tags defined. Has read_file been executed?'
+      'BAD_RESULTS_FILENAME', "Could not extract date from $result_filename"
     )
-  ) if !$self->{TAGS};
-  return $self->{TAGS};
+  ) if !$d;
+  return $d;
 }
 
-=head2 _read_file
+=head2 _get_all_week_files
 
-Does the hard work for read_file().
+This method returns a list of the result files and their paths for a given division. The division is
+specified by passing the csv filename eg 'U9N.csv'.
 
-=cut
+The files are listed in alphanumeric order.
 
-#***************************************
-sub _read_file {
+Reads all the files in the csv directory specified in the configuration. It then loads all those
+that match the specified pattern into a list.
 
-  #***************************************
-  my $self = shift;
-  my $err  = 0;
-  my $main_xml;
+It is assumed that there is a relationship between the name of the csv file of the division and the
+names of the week files for that division. Specifically, the name of a week file will be produced by
+removing the extension from the csv filename, adding an underscore and the date for the week. So
+County1.csv has associated week files called County1_21-Jun.dat, County1_28-Jun.dat, etc.
 
-  croak( ResultsSystem::Exception->new( 'FILENAME_NOT_SET', 'full_filename is not set' ) )
-    if !$self->_get_full_filename;
+This method selects the week files by using a pattern which consists of the csv basename plus an underscore.
+Thus the pattern for "County1.csv" is "County1_".
 
-  croak( ResultsSystem::Exception->new( 'FILE_DOES_NOT_EXIST', $self->_get_full_filename ) )
-    if !-f $self->_get_full_filename;
+The method returns a reference to the list of week files.
 
-  ( $err, $main_xml ) = $self->_load_file( $self->_get_full_filename );
-  return $err if $err;
+  $list_ref = $lt->_get_all_week_files('U9N.csv');
 
-  $self->{TAGS} = $main_xml;
-
-  return $err;
-}
-
-=head2 _load_file
-
-Read the xml file. Returns an error if the file doesn't exist or the read fails.
-
-($err, $xml) = $c->_load_file($full_filename);
-
-=cut
-
-#***************************************
-sub _load_file {
-
-  #***************************************
-  my ( $self, $full_filename ) = @_;
-  my ($tags);
-
-  my $xml = XML::Simple->new();
-  return 1 if !$xml;
-
-  eval {
-    $tags = $xml->XMLin(
-      $full_filename,
-      NoAttr        => 1,
-      ForceArray    => 1,
-      SuppressEmpty => ""
-    );
-    1;
-  } || do {
-    my $err = $@;
-    $self->logger->error($err);
-    croak( ResultsSystem::Exception->new( 'XML_ERROR', "Error reading XML $err" ) );
-  };
-
-  if ( ref($tags) ne 'HASH' ) {
-    $self->logger(1)->error( 'XML ERROR ' . Dumper $tags);
-    croak(
-      ResultsSystem::Exception->new(
-        'XML_ERROR', "Error reading XML. Variable returned is not a hash ref"
-      )
-    );
+  {
+    "/home/duncan/git/results_system/forks/nfcca/results_system/fixtures/nfcca/2017/U9N_1-May.dat",
+    "/home/duncan/git/results_system/forks/nfcca/results_system/fixtures/nfcca/2017/U9N_15-May.dat",
+    "/home/duncan/git/results_system/forks/nfcca/results_system/fixtures/nfcca/2017/U9N_8-May.dat"
   }
-  $self->logger(1)->debug("File read");
-
-  return ( 0, $tags );
-}
-
-=head2 _get_full_filename
-
-Returns the full filename of the divisions xml file.
 
 =cut
 
 #***************************************
-sub _get_full_filename {
+sub _get_all_week_files {
 
   #***************************************
+  my ( $self, $csv ) = validate_pos( @_, 1, { regex => qr/^\w+\.csv$/x } );
+  my ( $FP, @files );
+
+  my $dir = $self->build_csv_path;
+
+  $csv =~ s/\..*$//xg;    # Remove extension
+
+  opendir( $FP, $dir )
+    || do { croak( ResultsSystem::Exception->new( 'UNABLE_TO_OPEN_DIR', $! ) ); };
+
+  @files = readdir $FP;
+  $self->logger->debug( scalar(@files) . " files retrieved from $dir." );
+  close $FP;
+
+  my $pattern = $csv . "_";
+  @files = grep {/^$pattern/x} @files;
+  $self->logger->debug(
+    scalar(@files) . " of these files are week files for the division. " . $csv );
+
+  @files = map { join( '/', $dir, $_ ) } @files;
+
+  @files = sort @files;
+
+  return \@files;
+
+}
+
+=head2 build_csv_path
+
+Returns the directory where the week result (.dat) files for the current season can be found.
+
+Assumed to be the same as where the csv files can be found.
+
+=cut
+
+sub build_csv_path {
   my $self = shift;
-  return $self->{FULL_FILENAME};
+  my $c    = $self->get_configuration;
+
+  my $dir = $c->get_path( -csv_files_with_season => "Y" );
+
+  croak(
+    ResultsSystem::Exception->new(
+      'DIR_NOT_FOUND', "Directory for csv files not found. " . $dir
+    )
+  ) if !-d $dir;
+  return $dir;
+}
+
+=head2 _extract_data
+
+This method accepts a reference to a list of week files. It then loops
+through the files and creates a list of WeekResults objects. Each WeekResults
+object contains the data for one week.
+
+ $week_data_list = $lt->_extract_data( \@files );
+
+=cut
+
+#***************************************
+sub _extract_data {
+
+  #***************************************
+  my ( $self, $files_ref ) = validate_pos( @_, 1, 1 );
+  my $week_data_list = [];
+
+  foreach my $f (@$files_ref) {
+
+    $self->logger->debug($f);
+    $self->logger->debug( "Create WeekResults object " . $f );
+
+    my $wd = $self->get_week_data_reader_model_factory->();
+    $wd->set_full_filename($f);
+    $wd->read_file;
+
+    push @$week_data_list, $wd;
+
+  }
+
+  return $week_data_list;
+}
+
+=head2 get_store_divisions_model
+
+=cut
+
+sub get_store_divisions_model {
+  my $self = shift;
+  return $self->{store_divisions_model};
+}
+
+=head2 set_store_divisions_model
+
+=cut
+
+sub set_store_divisions_model {
+  my ( $self, $v ) = @_;
+  $self->{store_divisions_model} = $v;
+  return $self;
+}
+
+=head2 get_fixture_list_model
+
+=cut
+
+sub get_fixture_list_model {
+  my $self = shift;
+  return $self->{fixture_list_model};
+}
+
+=head2 set_fixture_list_model
+
+=cut
+
+sub set_fixture_list_model {
+  my ( $self, $v ) = @_;
+  $self->{fixture_list_model} = $v;
+  return $self;
+}
+
+=head2 get_week_data_reader_model_factory
+
+=cut
+
+sub get_week_data_reader_model_factory {
+  my $self = shift;
+  return $self->{week_data_reader_model_factory};
+}
+
+=head2 set_week_data_reader_model_factory
+
+=cut
+
+sub set_week_data_reader_model_factory {
+  my ( $self, $v ) = @_;
+  $self->{week_data_reader_model_factory} = $v;
+  return $self;
 }
 
 1;
-
-__END__
-
-=head1 Example Model::Store::Divisions File
-
-The divisions file is an XML file.
-
- <xml>
-
-=head2 divisions
-
- <divisions>
-
-  <division>
-  
-    <menu_position>
-      1
-    </menu_position>
-    <menu_name>
-      U9
-    </menu_name>
-    <csv_file>
-      U92008.csv
-    </csv_file>
-    
-  </division>
-  
-  <division>
-  
-    <menu_position>
-      2
-    </menu_position>
-    <menu_name>
-      U11A
-    </menu_name>  
-    <csv_file>
-      U11A2008.csv
-    </csv_file>
-    
-  </division>
-  
-  <division>
-  
-    <menu_position>
-      3
-    </menu_position>
-    <menu_name>
-      U11B East
-    </menu_name>  
-    <csv_file>
-      U11BEast2008.csv
-    </csv_file>
-    
-  </division>
-  
-  <division>
-  
-    <menu_position>
-      4
-    </menu_position>
-    <menu_name>
-      U11B West
-    </menu_name>
-    <csv_file>
-      U11BWest2008.csv
-    </csv_file>
-  
-  </division>
-  
-  <division>
-  
-    <menu_position>
-      5
-    </menu_position>
-    <menu_name>
-      U13A
-    </menu_name>
-    <csv_file>
-      U13A2008.csv
-    </csv_file>
-  
-  </division>
-  
-  <division>
-  
-    <menu_position>
-      6
-    </menu_position>
-    <menu_name>
-      U13B East
-    </menu_name>
-    <csv_file>
-      U11BEast2008.csv
-    </csv_file>
-  
-  </division>
-  
-  <division>
-  
-    <menu_position>
-      7
-    </menu_position>
-    <menu_name>
-      U13B West
-    </menu_name>
-    <csv_file>
-      U13BWest2008.csv
-    </csv_file>
-  
-  </division>
-  
-  <division>
-  
-    <menu_position>
-      8
-    </menu_position>
-    <menu_name>
-      U15A
-    </menu_name>
-    <csv_file>
-      U15A2008.csv
-    </csv_file>
-  
-  </division>
-
-  <division>
-  
-    <menu_position>
-      9
-    </menu_position>
-    <menu_name>
-      U15B East
-    </menu_name>
-    <csv_file>
-      U15BEast2008.csv
-    </csv_file>
-  
-  </division>
-
-  <division>
-  
-    <menu_position>
-      10
-    </menu_position>
-    <menu_name>
-      U15B West
-    </menu_name>
-    <csv_file>
-      U15BWest2008.csv
-    </csv_file>
-  
-  </division>
-
-  <division>
-  
-    <menu_position>
-      11
-    </menu_position>
-    <menu_name>
-      U15B Central
-    </menu_name>
-    <csv_file>
-      U15BCentral2008.csv
-    </csv_file>
-  
-  </division>
-
- </divisions>
-
- </xml>
-
-=cut

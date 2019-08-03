@@ -1,4 +1,4 @@
-use 5.006;
+use 5.010;
 use strict;
 use warnings;
 use ExtUtils::MakeMaker;
@@ -9,16 +9,29 @@ my %WriteMakefileArgs = (
     VERSION_FROM     => 'lib/ResultsSystem/Model/Store.pm',
     ABSTRACT_FROM    => 'lib/ResultsSystem/Model/Store.pm',
     LICENSE          => 'artistic_2',
-    MIN_PERL_VERSION => '5.006',
+    MIN_PERL_VERSION => '5.010',
     CONFIGURE_REQUIRES => {
         'ExtUtils::MakeMaker' => '0',
     },
     TEST_REQUIRES => {
-        'Test::More' => '0',
+        'Test::More' => '1.302133',
+        'Test::Deep' => '0.115',
+        'Test::Differences' => '0.63',
+        'Test::Exception' => '0.43',
     },
     PREREQ_PM => {
-        #'ABC'              => '1.6',
-        #'Foo::Bar::Module' => '5.0401',
+	'Carp'				=> '1.3301',
+	'Data::Dumper'			=> '2.154',
+	'List::MoreUtils'		=> '0.405',
+	'Params::Validate'		=> '1.18',
+	'parent'			=> '0.228',
+	'Regexp::Common'		=> '2013031301',
+	'Sort::Maker'			=> '0.06',
+	'strict'			=> '1.04',
+	'warnings'			=> '1.06',
+	'XML::Simple'			=> '2.20',
+	'ResultsSystem::Exception'	=> '0.01',
+	'ResultsSystem::Model'		=> '0.01',
     },
     dist  => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean => { FILES => 'ResultsSystem-Model-Store-*' },
