@@ -2,6 +2,7 @@ use 5.010;
 use strict;
 use warnings;
 use ExtUtils::MakeMaker;
+use File::Find;
 
 my %WriteMakefileArgs = (
     NAME             => 'ResultsSystem::Model::Store',
@@ -35,6 +36,11 @@ my %WriteMakefileArgs = (
     },
     dist  => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean => { FILES => 'ResultsSystem-Model-Store-*' },
+    test => {
+	    TESTS => find_test_dirs(), 
+	    # RECURSIVE_TEST_FILES=>1
+    },
+
 );
 
 # Compatibility with old versions of ExtUtils::MakeMaker
@@ -56,3 +62,14 @@ delete $WriteMakefileArgs{LICENSE}
     unless eval { ExtUtils::MakeMaker->VERSION('6.31'); 1 };
 
 WriteMakefile(%WriteMakefileArgs);
+
+sub find_test_dirs {
+  my $dirs = {};
+  my $wanted = sub {
+      $dirs->{$File::Find::dir.'/*.t'} = 1;
+  };
+  find($wanted, 't', 'xt');
+  my $out = join( ' ', keys %$dirs);
+  return $out;
+}
+
