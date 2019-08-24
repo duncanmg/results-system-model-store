@@ -19,6 +19,7 @@ my %WriteMakefileArgs = (
         'Test::Deep' => '0.115',
         'Test::Differences' => '0.63',
         'Test::Exception' => '0.43',
+	'FindBin::libs' => '2.019002',
     },
     PREREQ_PM => {
 	'Carp'				=> '1.3301',
