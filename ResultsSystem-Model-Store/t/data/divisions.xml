@@ -1,0 +1,93 @@
+<xml>
+  <divisions>
+  
+    <division>
+    
+      <menu_position>
+        1
+      </menu_position>
+      <menu_name>
+        U11 Elevens
+      </menu_name>  
+      <csv_file>
+        U11Elevens.csv
+      </csv_file>
+      <no_validate_games_played>Y</no_validate_games_played>  
+      
+    </division>
+    
+    <division>
+    
+      <menu_position>
+        2
+      </menu_position>
+      <menu_name>
+        U11N
+      </menu_name>
+      <csv_file>
+        U11N.csv
+      </csv_file>
+      <no_validate_games_played>Y</no_validate_games_played>  
+    
+    </division>
+    
+    <division>
+    
+      <menu_position>
+        3
+      </menu_position>
+      <menu_name>
+        U11S
+      </menu_name>
+      <csv_file>
+        U11S.csv
+      </csv_file>
+    
+    </division>
+    
+    <division>
+    
+      <menu_position>
+        4
+      </menu_position>
+      <menu_name>
+        U13N
+      </menu_name>
+      <csv_file>
+        U13N.csv
+      </csv_file>
+      <no_validate_games_played>Y</no_validate_games_played>  
+    
+    </division>
+    
+    <division>
+    
+      <menu_position>
+        5
+      </menu_position>
+      <menu_name>
+        U13S
+      </menu_name>
+      <csv_file>
+        U13S.csv
+      </csv_file>
+      <no_validate_games_played>Y</no_validate_games_played>  
+    </division>
+    
+    <division>
+    
+      <menu_position>
+        6
+      </menu_position>
+      <menu_name>
+        U16
+      </menu_name>
+      <csv_file>
+        U16.csv
+      </csv_file>
+      <no_validate_games_played>Y</no_validate_games_played>  
+    
+    </division>
+  
+  </divisions>
+</xml>

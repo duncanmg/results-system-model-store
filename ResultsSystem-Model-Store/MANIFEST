@@ -12,3 +12,7 @@ ignore.txt
 t/Model/Store.t
 t/Model/Store/Divisions.t
 xt/boilerplate.t
+t/data/divisions.xml
+# t/lib/Factory.pm
+t/lib/Helper.pm
+
