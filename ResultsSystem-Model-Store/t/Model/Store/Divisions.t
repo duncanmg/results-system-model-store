@@ -9,7 +9,7 @@ use Test::Exception;
 use Test::Deep;
 use Data::Dumper;
 
-use Helper qw/get_logger get_config/;
+use Helper qw/get_logger/;
 
 use_ok('ResultsSystem::Model::Store::Divisions');
 

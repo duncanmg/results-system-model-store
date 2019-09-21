@@ -5,25 +5,51 @@ use Test::Exception;
 use Test::Differences;
 use Data::Dumper;
 
-use Helper qw/get_factory/;
+use FindBin qw($Bin);
+use FindBin::libs;
 
-my $config = get_factory->get_configuration;
-my $csv_files_with_season;
-ok( $csv_files_with_season = $config->get_path( -csv_files_with_season => 'Y' ),
-  'results_dir_full' );
+use Helper qw/get_logger/;
+
+use Test::MockObject;
 
 use_ok('ResultsSystem::Model::Store');
 
 my $store;
-ok( $store = get_factory()->get_store_model, "Got an object" );
+ok( $store = ResultsSystem::Model::Store->new( {} ), "Got a simple object" );
 isa_ok( $store, 'ResultsSystem::Model::Store' );
 
-#my $all_fixture_lists = {};
-#lives_ok( sub { $all_fixture_lists = $store->get_all_fixture_lists; },
-#  "get_all_fixture_lists lives" );
-#
-#ok( scalar( keys %$all_fixture_lists ) > 1, "Got more than 1 division" );
-#
+#===========================
+
+my $mock_store_divisions_model = Test::MockObject->new();
+$mock_store_divisions_model->mock( 'get_menu_names',
+  sub { return ( { csv_file => 'one' }, { csv_file => 'two' } ) } );
+
+my $mock_fixture_list_model = Test::MockObject->new();
+$mock_fixture_list_model->mock( 'set_full_filename', sub { return $_[0] } );
+$mock_fixture_list_model->mock( 'read_file',         sub { return $_[0] } );
+$mock_fixture_list_model->mock( 'get_all_fixtures',  sub { return $_[0] } );
+
+my $mock_configuration = Test::MockObject->new();
+$mock_configuration->mock( 'get_path',
+  sub { my $h = $_[1]; return 'path' if $h eq '-divisions_file_dir' } );
+
+ok(
+  $store = ResultsSystem::Model::Store->new(
+    { -store_divisions_model => $mock_store_divisions_model,
+      -fixture_list_model    => $mock_fixture_list_model,
+      -configuration         => $mock_configuration
+    }
+  ),
+  "Got a more useful object"
+);
+isa_ok( $store, 'ResultsSystem::Model::Store' );
+
+my $all_fixture_lists = {};
+lives_ok( sub { $all_fixture_lists = $store->get_all_fixture_lists; },
+  "get_all_fixture_lists lives" );
+
+ok( scalar( keys %$all_fixture_lists ) > 1, "Got more than 1 division" );
+
 #is( scalar( grep { ref( $all_fixture_lists->{$_} ) ne 'ARRAY' } keys %$all_fixture_lists ),
 #  0, 'Got a hash ref of list refs' )
 #  || diag( Dumper $all_fixture_lists);
