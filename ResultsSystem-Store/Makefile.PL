@@ -5,10 +5,10 @@ use ExtUtils::MakeMaker;
 use File::Find;
 
 my %WriteMakefileArgs = (
-    NAME             => 'ResultsSystem::Model::Store',
+    NAME             => 'ResultsSystem::Store',
     AUTHOR           => q{Duncan Garland <duncan.garland@ntlworld.com>},
-    VERSION_FROM     => 'lib/ResultsSystem/Model/Store.pm',
-    ABSTRACT_FROM    => 'lib/ResultsSystem/Model/Store.pm',
+    VERSION_FROM     => 'lib/ResultsSystem/Store.pm',
+    ABSTRACT_FROM    => 'lib/ResultsSystem/Store.pm',
     LICENSE          => 'artistic_2',
     MIN_PERL_VERSION => '5.010',
     CONFIGURE_REQUIRES => {
@@ -22,21 +22,21 @@ my %WriteMakefileArgs = (
 	'FindBin::libs' => '2.019002',
     },
     PREREQ_PM => {
-	'Carp'				=> '1.3301',
-	'Data::Dumper'			=> '2.154',
-	'List::MoreUtils'		=> '0.405',
-	'Params::Validate'		=> '1.18',
-	'parent'			=> '0.228',
-	'Regexp::Common'		=> '2013031301',
-	'Sort::Maker'			=> '0.06',
-	'strict'			=> '1.04',
-	'warnings'			=> '1.06',
-	'XML::Simple'			=> '2.20',
-	'ResultsSystem::Exception'	=> '0.01',
-	'ResultsSystem::Model'		=> '0.01',
+	'Carp'					=> '1.3301',
+	'Data::Dumper'				=> '2.154',
+	'List::MoreUtils'			=> '0.405',
+	'Params::Validate'			=> '1.18',
+	'parent'				=> '0.228',
+	'Regexp::Common'			=> '2013031301',
+	'Sort::Maker'				=> '0.06',
+	'strict'				=> '1.04',
+	'warnings'				=> '1.06',
+	'XML::Simple'				=> '2.20',
+	'ResultsSystem::Core::Exception'	=> '0.01',
+	'ResultsSystem::Core::Model'		=> '0.01',
     },
     dist  => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
-    clean => { FILES => 'ResultsSystem-Model-Store-*' },
+    clean => { FILES => 'ResultsSystem-Store-*' },
     test => {
 	    TESTS => find_test_dirs(), 
 	    # RECURSIVE_TEST_FILES=>1

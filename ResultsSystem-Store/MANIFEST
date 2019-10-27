@@ -1,6 +1,6 @@
 Changes
-lib/ResultsSystem/Model/Store.pm
-lib/ResultsSystem/Model/Store/Divisions.pm
+lib/ResultsSystem/Store.pm
+lib/ResultsSystem/Store/Divisions.pm
 Makefile.PL
 MANIFEST			This list of files
 README
@@ -9,8 +9,8 @@ t/manifest.t
 t/pod-coverage.t
 t/pod.t
 ignore.txt
-t/Model/Store.t
-t/Model/Store/Divisions.t
+t/Store.t
+t/Store/Divisions.t
 xt/boilerplate.t
 t/data/divisions.xml
 # t/lib/Factory.pm

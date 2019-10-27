@@ -14,6 +14,6 @@ inc/
 nytprof.out
 pod2htm*.tmp
 pm_to_blib
-ResultsSystem-Model-Store-*
-ResultsSystem-Model-Store-*.tar.gz
+ResultsSystem-Store-*
+ResultsSystem-Store-*.tar.gz
 *.swp

@@ -12,11 +12,11 @@ use Helper qw/get_logger/;
 
 use Test::MockObject;
 
-use_ok('ResultsSystem::Model::Store');
+use_ok('ResultsSystem::Store');
 
 my $store;
-ok( $store = ResultsSystem::Model::Store->new( {} ), "Got a simple object" );
-isa_ok( $store, 'ResultsSystem::Model::Store' );
+ok( $store = ResultsSystem::Store->new( {} ), "Got a simple object" );
+isa_ok( $store, 'ResultsSystem::Store' );
 
 #===========================
 
@@ -24,25 +24,28 @@ my $mock_store_divisions_model = Test::MockObject->new();
 $mock_store_divisions_model->mock( 'get_menu_names',
   sub { return ( { csv_file => 'one' }, { csv_file => 'two' } ) } );
 
-my $mock_fixture_list_model = Test::MockObject->new();
-$mock_fixture_list_model->mock( 'set_full_filename', sub { return $_[0] } );
-$mock_fixture_list_model->mock( 'read_file',         sub { return $_[0] } );
-$mock_fixture_list_model->mock( 'get_all_fixtures',  sub { return $_[0] } );
+sub get_mock_fixture_list_model {
+  my $mock_fixture_list_model = Test::MockObject->new();
+  $mock_fixture_list_model->mock( 'set_full_filename', sub { return $_[0] } );
+  $mock_fixture_list_model->mock( 'read_file',         sub { return $_[0] } );
+  $mock_fixture_list_model->mock( 'get_all_fixtures',  sub { return $_[0] } );
+  return $mock_fixture_list_model;
+}
 
 my $mock_configuration = Test::MockObject->new();
 $mock_configuration->mock( 'get_path',
   sub { my $h = $_[1]; return 'path' if $h eq '-divisions_file_dir' } );
 
 ok(
-  $store = ResultsSystem::Model::Store->new(
+  $store = ResultsSystem::Store->new(
     { -store_divisions_model => $mock_store_divisions_model,
-      -fixture_list_model    => $mock_fixture_list_model,
+      -fixture_list_model    => get_mock_fixture_list_model,
       -configuration         => $mock_configuration
     }
   ),
   "Got a more useful object"
 );
-isa_ok( $store, 'ResultsSystem::Model::Store' );
+isa_ok( $store, 'ResultsSystem::Store' );
 
 my $all_fixture_lists = {};
 lives_ok( sub { $all_fixture_lists = $store->get_all_fixture_lists; },

@@ -11,12 +11,12 @@ use Data::Dumper;
 
 use Helper qw/get_logger/;
 
-use_ok('ResultsSystem::Model::Store::Divisions');
+use_ok('ResultsSystem::Store::Divisions');
 
 my $d;
-ok( $d = ResultsSystem::Model::Store::Divisions->new( { -logger => get_logger() } ),
+ok( $d = ResultsSystem::Store::Divisions->new( { -logger => get_logger() } ),
   "Got an object" );
-isa_ok( $d, 'ResultsSystem::Model::Store::Divisions' );
+isa_ok( $d, 'ResultsSystem::Store::Divisions' );
 
 throws_ok( sub { $d->read_file }, qr/FILENAME_NOT_SET/, "Read file" );
 

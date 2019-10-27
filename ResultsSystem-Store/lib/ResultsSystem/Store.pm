@@ -1,7 +1,7 @@
 
 =head1 NAME
 
-ResultsSystem::Model::Store - This module carries out operations on the modules in the store.
+ResultsSystem::Store - This module carries out operations on the modules in the store.
 
 =cut
 
@@ -20,7 +20,7 @@ This module carries out operations on the modules in the store.
 
 =head1 INHERITS FROM
 
-L<ResultsSystem::Model|http://www.results_system_nfcca.com:8088/ResultsSystem/Model>
+L<ResultsSystem::Store|http://www.results_system_nfcca.com:8088/ResultsSystem/Store>
 
 =cut
 
@@ -28,7 +28,7 @@ L<ResultsSystem::Model|http://www.results_system_nfcca.com:8088/ResultsSystem/Mo
 
 =cut
 
-package ResultsSystem::Model::Store;
+package ResultsSystem::Store;
 
 use strict;
 use warnings;
@@ -39,13 +39,13 @@ our $VERSION = 0.01;
 #use Regexp::Common;
 use List::MoreUtils qw/any/;
 use Params::Validate qw/:all/;
+use Path::Tiny;
 
 use Data::Dumper;
 
-use ResultsSystem::Exception;
+use ResultsSystem::Core::Exception;
 
-use ResultsSystem::Model;
-use parent qw/ResultsSystem::Model/;
+use ResultsSystem::Store::Factory;
 
 =head2 new
 
@@ -60,23 +60,23 @@ Otherwise it is not processed until the full filename is set and read_file is ca
 
 =cut
 
-#***************************************
-sub new {
-
-  #***************************************
-  my ( $class, $args ) = @_;
-  my $self = {};
-  bless $self, $class;
-
-  $self->set_arguments(
-    [ qw/store_divisions_model fixture_list_model
-        week_data_reader_model_factory logger configuration/
-    ],
-    $args
-  );
-
-  return $self;
-}
+##***************************************
+#sub new {
+#
+#  #***************************************
+#  my ( $class, $args ) = @_;
+#  my $self = {};
+#  bless $self, $class;
+#
+#  $self->set_arguments(
+#    [ qw/
+#        logger configuration/
+#    ],
+#    $args
+#  );
+#
+#  return $self;
+#}
 
 =head2 get_all_fixture_lists
 
@@ -114,14 +114,11 @@ sub get_all_fixture_lists {
 
   my $fl = $self->get_fixture_list_model;
 
-  my $dir = $self->get_configuration->get_path( '-divisions_file_dir' => 1 );
-
   my $all = {};
 
   for my $d (@divisions) {
-    $fl->set_full_filename( join( '/', $dir, $d->{csv_file} ) );
-    $fl->read_file;
-    $all->{ $d->{csv_file} } = $fl->get_all_fixtures;
+    my $f = $fl->morph( $d->{csv_file} );
+    $all->{ $d->{csv_file} } = $f->get_all_fixtures;
   }
 
   return $all;
@@ -129,7 +126,7 @@ sub get_all_fixture_lists {
 
 =head2 get_menu_names
 
-Calls the get_menu_names method of L<ResultsSystem::Model::Store::Divisions>
+Calls the get_menu_names method of L<ResultsSystem::Store::Divisions>
 and returns the result.
 
 =cut
@@ -202,6 +199,11 @@ sub get_dates_and_result_filenames_for_division {
 
 =cut
 
+sub _get_factory {
+	my $self=shift;
+	$self->{FACTORY}=ResultsSystem::Store::Factory->new({-logger=>$self->logger, -configuration=>$self->get_configuration});
+}
+
 =head2 _extract_date_from_result_filename
 
   $self->_extract_date_from_result_filename('County1_28-Jun.dat');
@@ -214,7 +216,7 @@ sub _extract_date_from_result_filename {
   my ( $self, $result_filename ) = validate_pos( @_, 1, { regex => qr/\.dat$/x } );
   my ($d) = $result_filename =~ m/_(\d{1,2}\D[A-Z][a-z]{2})\.dat$/x;
   croak(
-    ResultsSystem::Exception->new(
+    ResultsSystem::Core::Exception->new(
       'BAD_RESULTS_FILENAME', "Could not extract date from $result_filename"
     )
   ) if !$d;
@@ -263,7 +265,7 @@ sub _get_all_week_files {
   $csv =~ s/\..*$//xg;    # Remove extension
 
   opendir( $FP, $dir )
-    || do { croak( ResultsSystem::Exception->new( 'UNABLE_TO_OPEN_DIR', $! ) ); };
+    || do { croak( ResultsSystem::Core::Exception->new( 'UNABLE_TO_OPEN_DIR', $! ) ); };
 
   @files = readdir $FP;
   $self->logger->debug( scalar(@files) . " files retrieved from $dir." );
@@ -297,7 +299,7 @@ sub build_csv_path {
   my $dir = $c->get_path( -csv_files_with_season => "Y" );
 
   croak(
-    ResultsSystem::Exception->new(
+    ResultsSystem::Core::Exception->new(
       'DIR_NOT_FOUND', "Directory for csv files not found. " . $dir
     )
   ) if !-d $dir;

@@ -1,7 +1,7 @@
 
 =head1 NAME
 
-ResultsSystem::Model::Store::Divisions - Stores the divisions
+ResultsSystem::Store::Divisions - Stores the divisions
 
 =cut
 
@@ -23,7 +23,7 @@ ResultsSystem::Model::Store::Divisions - Stores the divisions
 
 =cut
 
-package ResultsSystem::Model::Store::Divisions;
+package ResultsSystem::Store::Divisions;
 
 use strict;
 use warnings;
@@ -38,22 +38,22 @@ use Regexp::Common qw /whitespace/;
 use Data::Dumper;
 use Params::Validate qw/:all/;
 
-use ResultsSystem::Exception;
+use ResultsSystem::Core::Exception;
 
 =head2 new
 
-Constructor for the ResultsSystem::Model::Store::Divisions object. Optionally accepts the full filename
+Constructor for the ResultsSystem::Store::Divisions object. Optionally accepts the full filename
 of the divisions configuration file as an argument. Does not read the file at this point.
 
 If -full_filename is not provided, then it must be set explicitly before the file 
 can be read.
 
-  $c = ResultsSystem::Model::Store::Divisions->new( 
+  $c = ResultsSystem::Store::Divisions->new( 
     -full_filename => "/a/b/divisions.xml", -logger => $logger );
 
 or 
 
-  $c = ResultsSystem::Model::Store::Divisions->new(-logger => $logger);
+  $c = ResultsSystem::Store::Divisions->new(-logger => $logger);
   $c->set_full_filename("/a/b/divisions.xml");
 
 Requires -logger
@@ -251,7 +251,7 @@ sub _get_tags {
   #***************************************
   my $self = shift;
   croak(
-    ResultsSystem::Exception->new(
+    ResultsSystem::Core::Exception->new(
       'NO_TAGS_DEFINED', 'No tags defined. Has read_file been executed?'
     )
   ) if !$self->{TAGS};
@@ -272,10 +272,10 @@ sub _read_file {
   my $err  = 0;
   my $main_xml;
 
-  croak( ResultsSystem::Exception->new( 'FILENAME_NOT_SET', 'full_filename is not set' ) )
+  croak( ResultsSystem::Core::Exception->new( 'FILENAME_NOT_SET', 'full_filename is not set' ) )
     if !$self->_get_full_filename;
 
-  croak( ResultsSystem::Exception->new( 'FILE_DOES_NOT_EXIST', $self->_get_full_filename ) )
+  croak( ResultsSystem::Core::Exception->new( 'FILE_DOES_NOT_EXIST', $self->_get_full_filename ) )
     if !-f $self->_get_full_filename;
 
   ( $err, $main_xml ) = $self->_load_file( $self->_get_full_filename );
@@ -315,13 +315,13 @@ sub _load_file {
   } || do {
     my $err = $@;
     $self->logger->error($err);
-    croak( ResultsSystem::Exception->new( 'XML_ERROR', "Error reading XML $err" ) );
+    croak( ResultsSystem::Core::Exception->new( 'XML_ERROR', "Error reading XML $err" ) );
   };
 
   if ( ref($tags) ne 'HASH' ) {
     $self->logger(1)->error( 'XML ERROR ' . Dumper $tags);
     croak(
-      ResultsSystem::Exception->new(
+      ResultsSystem::Core::Exception->new(
         'XML_ERROR', "Error reading XML. Variable returned is not a hash ref"
       )
     );
@@ -349,7 +349,7 @@ sub _get_full_filename {
 
 __END__
 
-=head1 Example Model::Store::Divisions File
+=head1 Example Store::Divisions File
 
 The divisions file is an XML file.
 
