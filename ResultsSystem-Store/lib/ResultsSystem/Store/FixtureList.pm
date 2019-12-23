@@ -92,8 +92,8 @@ use Clone qw/clone/;
 
 use ResultsSystem::Core::Exception;
 
-use ResultsSystem::Store;
-use parent qw/ResultsSystem::Store/;
+use ResultsSystem::Store::Base;
+use parent qw/ResultsSystem::Store::Base/;
 
 =head2 new
 
@@ -117,7 +117,7 @@ sub new {
   bless $self, $class;
   my $err = 0;
 
-  $self->set_arguments( [qw/division logger configuration/], $args );
+  $self->set_arguments( [qw/division logger /], $args );
 
   $err = $self->read_file() if $self->get_full_filename;
 

@@ -9,10 +9,25 @@ t/manifest.t
 t/pod-coverage.t
 t/pod.t
 ignore.txt
-t/Store.t
-t/Store/Divisions.t
 xt/boilerplate.t
 t/data/divisions.xml
 # t/lib/Factory.pm
 t/lib/Helper.pm
+t/Factory.t
+t/data/U9N_1-May.dat
+t/data/nfcca.ini
+t/data/U9N_8-May.dat
+t/data/U9N_15-May.dat
+t/data/U9N.csv
+t/Model/FixtureList.t
+t/Model/Store.t
+t/Model/Store/Divisions.t
+lib/ResultsSystem/Store/Factory.pm
+lib/ResultsSystem/Store/Base.pm
+lib/ResultsSystem/Store/FixtureList.pm
+lib/ResultsSystem/Store/WeekResults.pm
+lib/ResultsSystem/Store/Configuration.pm
+lib/ResultsSystem/Store/FixtureList/Set.pm
+lib/ResultsSystem/Store/WeekResults/Writer.pm
+lib/ResultsSystem/Store/WeekResults/Reader.pm
 

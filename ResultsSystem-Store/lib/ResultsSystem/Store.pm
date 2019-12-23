@@ -47,6 +47,8 @@ use ResultsSystem::Core::Exception;
 
 use ResultsSystem::Store::Factory;
 
+use parent qw/ResultsSystem::Store::Base/;
+
 =head2 new
 
 Constructor for the module. Accepts one parameter which
@@ -60,23 +62,23 @@ Otherwise it is not processed until the full filename is set and read_file is ca
 
 =cut
 
-##***************************************
-#sub new {
-#
-#  #***************************************
-#  my ( $class, $args ) = @_;
-#  my $self = {};
-#  bless $self, $class;
-#
-#  $self->set_arguments(
-#    [ qw/
-#        logger configuration/
-#    ],
-#    $args
-#  );
-#
-#  return $self;
-#}
+#***************************************
+sub new {
+
+  #***************************************
+  my ( $class, $args ) = @_;
+  my $self = {};
+  bless $self, $class;
+
+  $self->set_arguments(
+    [ qw/
+        logger configuration store_divisions_model fixture_list_model/
+    ],
+    $args
+  );
+
+  return $self;
+}
 
 =head2 get_all_fixture_lists
 
@@ -200,8 +202,9 @@ sub get_dates_and_result_filenames_for_division {
 =cut
 
 sub _get_factory {
-	my $self=shift;
-	$self->{FACTORY}=ResultsSystem::Store::Factory->new({-logger=>$self->logger, -configuration=>$self->get_configuration});
+  my $self = shift;
+  $self->{FACTORY} = ResultsSystem::Store::Factory->new(
+    { -logger => $self->logger, -configuration => $self->get_configuration } );
 }
 
 =head2 _extract_date_from_result_filename

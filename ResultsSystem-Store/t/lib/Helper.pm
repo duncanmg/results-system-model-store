@@ -4,6 +4,8 @@ use strict;
 use warnings;
 use Carp;
 use Test::MockObject;
+use ResultsSystem::Store::Configuration;
+use FindBin qw/$Bin/;
 
 # use ResultsSystem;
 
@@ -52,9 +54,14 @@ Die if neither is present.
 
 sub get_config {
 
-  my $file = get_system();
+  my $file = $Bin . '/data/nfcca.ini';
 
-  return get_factory()->get_configuration;
+  my $c = ResultsSystem::Store::Configuration->new(
+    { -full_filename => $file, -logger => get_logger() } );
+
+  $c->read_file;
+
+  return $c;
 }
 
 =head2 get_logger
@@ -65,6 +72,7 @@ sub get_logger {
 
   my $logger = Test::MockObject->new();
   $logger->mock( 'debug', sub { return 1; } );
+  $logger->mock( 'warn', sub { return 1; } );
   $logger->mock( 'error', sub { return 1; } );
   return $logger;
 }

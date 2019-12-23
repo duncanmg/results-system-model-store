@@ -5,21 +5,27 @@ use Test::Exception;
 use Test::Differences;
 use List::MoreUtils qw/any/;
 use Data::Dumper;
+use Test::MockObject;
+use FindBin qw/$Bin/;
 
-use Helper qw/ get_factory get_example_csv_full_filename /;
+my $mock_logger = Test::MockObject->new;
+$mock_logger->mock( 'debug', sub {1} );
+$mock_logger->mock( 'error', sub {1} );
 
-use_ok('ResultsSystem::FixtureList');
+my $CSV_FILE = $Bin . '/../data/U9N.csv';
+
+use_ok('ResultsSystem::Store::FixtureList');
 
 my $fl;
-ok( $fl = get_factory->get_fixture_list_model, "Got an object" );
-isa_ok( $fl, 'ResultsSystem::FixtureList' );
-ok( $fl->logger,            "Logger is set" );
-ok( $fl->get_configuration, "Configuration is set" );
+ok( $fl = ResultsSystem::Store::FixtureList->new( { -logger => $mock_logger } ),
+  "Got an object" );
+isa_ok( $fl, 'ResultsSystem::Store::FixtureList' );
+ok( $fl->logger, "Logger is set" );
 
 throws_ok( sub { $fl->read_file },
   qr/FILE_DOES_NOT_EXIST/x, "read_file throws an exception because the file has not been set." );
 
-ok( $fl->set_full_filename( get_example_csv_full_filename() ), "Set full_filename" );
+ok( $fl->set_full_filename($CSV_FILE), "Set full_filename" );
 
 lives_ok( sub { $fl->read_file }, "Full filename has been set so read_file() lives" );
 
