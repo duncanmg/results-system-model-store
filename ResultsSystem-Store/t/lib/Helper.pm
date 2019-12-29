@@ -6,6 +6,7 @@ use Carp;
 use Test::MockObject;
 use ResultsSystem::Store::Configuration;
 use FindBin qw/$Bin/;
+use File::Spec;
 
 # use ResultsSystem;
 
@@ -54,10 +55,13 @@ Die if neither is present.
 
 sub get_config {
 
-  my $file = $Bin . '/data/nfcca.ini';
+  # my $file = $Bin . '/data/nfcca.ini';
+
+  my ($volume, $directories, $file) = File::Spec->splitpath(__FILE__);
+  my $config_file = File::Spec->catfile($directories, '/../data','nfcca.ini');
 
   my $c = ResultsSystem::Store::Configuration->new(
-    { -full_filename => $file, -logger => get_logger() } );
+    { -full_filename => $config_file, -logger => get_logger() } );
 
   $c->read_file;
 
@@ -72,8 +76,9 @@ sub get_logger {
 
   my $logger = Test::MockObject->new();
   $logger->mock( 'debug', sub { return 1; } );
-  $logger->mock( 'warn', sub { return 1; } );
+  $logger->mock( 'warn',  sub { return 1; } );
   $logger->mock( 'error', sub { return 1; } );
+  $logger->mock( 'less_logging', sub { return 1; } );
   return $logger;
 }
 

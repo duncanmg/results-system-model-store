@@ -281,7 +281,7 @@ sub get_log_stem {
 This method accepts one mandatory named parameter and one optional named
 parameter. Returns the appropriate path from the configuration file.
 
-Valid paths are -csv_files, -log_dir, -pwd_dir, -table_dir, -results_dir,
+Valid paths are -csv_files, -log_dir, -table_dir, -results_dir,
 -htdocs, -cgi_dir, -root, -season, -csv_files_with_season, -htdocs_full,
 -results_dir_full, -table_dir_full, -cgi_dir_full, -divisions_file_dir. 
 
@@ -317,7 +317,7 @@ sub get_path {
   my $key         = shift @keys;
   my @valid_paths = (
     "-csv_files",             "-log_dir",
-    "-pwd_dir",               "-table_dir",
+                   "-table_dir",
     "-results_dir",           "-htdocs",
     "-cgi_dir",               "-root",
     '-htdocs_full',           '-results_dir_full',
@@ -497,173 +497,6 @@ sub get_results_html_full_filename {
   $f = "$dir/${f}_$w.htm";          # Add the path
 
   return $f;
-}
-
-=head2 Password Handling
-
-=cut
-
-=head3 get_code
-
-This method return the password for the user passed as an argument. Returns
-undefined if the user does not exist.
-
-
-$pwd = $c->get_code( "fred" );
-
-=cut
-
-#***************************************
-sub get_code {
-
-  #***************************************
-  my $self = shift;
-  my $user = shift;
-  my $tags;
-  $tags = $self->_get_tags->{users} if $self->_get_tags;
-  my $code;
-
-  if ( !$user ) {
-    return;
-  }
-
-  foreach my $u (@$tags) {
-
-    if ( $u->{user}[0] eq $user ) {
-      $code = $u->{code}[0];
-      last;
-    }
-  }
-  return $self->_trim($code);
-}
-
-=head2 View Handling
-
-=cut
-
-=head3 get_stylesheet
-
-Returns a hash ref containing the name of the first stylesheet
-and whether it is to be copied.
-
-The elements of the hash ref are name and copy. The latter can
-have values of "yes" and "no".
-
-=cut
-
-#***************************************
-sub get_stylesheet {
-
-  #***************************************
-  my $self = shift;
-  my $name = $self->_get_tags->{stylesheets}[0]{sheet}[0];
-  my $copy = $self->_get_tags->{stylesheets}[0]{copy}[0];
-  $name = $self->_trim($name);
-  $copy = "no" if !$copy;
-  $copy = ( $copy =~ m/yes/i ) ? "yes" : "no";
-  if ( !$name ) {
-    $self->logger->debug("get_stylesheet() No sheet element found.");
-    if ( $self->_get_tags->{stylesheets}[0] =~ m/\w+/x ) {
-      $name = $self->_get_tags->{stylesheets}[0];
-      $self->logger->debug("get_stylesheet() Return $name instead.");
-    }
-  }
-  return { name => $name, copy => $copy };
-}
-
-=head3 get_stylesheets
-
-Returns a list of stylesheets
-
-=cut
-
-#***************************************
-# Return a list of stylesheets
-#***************************************
-sub get_stylesheets {
-
-  #***************************************
-  my $self = shift;
-  my @s    = @{ $self->_get_tags->{stylesheets}[0]{sheet} };
-
-  foreach my $sheet (@s) {
-    $sheet = $self->_trim($sheet);
-  }
-
-  return @s;
-}
-
-=head3 get_return_page
-
-The return link on the page will point here. Returns HTML
-within a <p> tag.
-
-  my ( $results_index_url, $title ) 
-    = $self->get_return_page( -results_index => 1 );
-
-  my ( $menu_url, $title ) = $self->get_return_page;
-
-=cut
-
-#***************************************
-# The return link on the page will point
-# here.
-#***************************************
-sub get_return_page {
-
-  #***************************************
-  my $self = shift;
-  my %args = (@_);
-
-  my $l = $self->_get_tags->{return_to}[0]{menu}[0]{href}[0];
-  my $t = $self->_get_tags->{return_to}[0]{menu}[0]{title}[0];
-
-  if ( $args{-results_index} ) {
-    $l = $self->_get_tags->{return_to}[0]{results_index}[0]{href}[0];
-    $t = $self->_get_tags->{return_to}[0]{results_index}[0]{title}[0];
-  }
-
-  return ( $self->_trim($l), $self->_trim($t) );
-}
-
-=head3 get_descriptors
-
-Returns a string. $c->get_descriptors( title => "Y" ) or
-$c->get_descriptors( season => "Y" );
-
-=cut
-
-#***************************************
-sub get_descriptors {
-
-  #***************************************
-  my $self = shift;
-  my %args = (@_);
-  my $d;
-
-  if ( $args{-title} ) {
-    $d = $self->_get_tags->{descriptors}[0]{title}[0];
-  }
-  if ( $args{-season} ) {
-    $d = $self->_get_tags->{descriptors}[0]{season}[0];
-  }
-
-  return $self->_trim($d);
-}
-
-=head3 get_title
-
-Returns the title.
-
-=cut
-
-#***************************************
-sub get_title {
-
-  #***************************************
-  my $self = shift;
-  my $s    = $self->_get_tags->{descriptors}[0]{title}[0];
-  return $self->_trim($s);
 }
 
 =head3 get_season
@@ -963,9 +796,6 @@ The configuration file is an XML file.
   </log_dir>
   <!-- Directory on the file system which holds the files containing information about
   failed password entries. -->
-  <pwd_dir>
-    ../../../../sehca_logs
-  </pwd_dir>
   <!-- Directory on the file system which contains the HTML tables. Not URL. -->
   <table_dir>
     ../../../../results_system/dev/custom/sehca/2008/tables
@@ -1014,15 +844,6 @@ The configuration file is an XML file.
   </results_index>
 </return_to>
 
-
-=head2 stylesheets
-
- <!-- Accessed via get_stylesheets -->
- <stylesheets>
-  <sheet>
-    sehca_styles.css
-  </sheet>
- </stylesheets>
 
 =head2 users
 
