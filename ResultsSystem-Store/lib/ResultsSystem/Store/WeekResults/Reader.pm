@@ -130,6 +130,8 @@ The full filename must have been defined.
     my $err  = 0;
     my $l;
 
+    return '' if ! keys %args;
+
     if ( $args{-type} !~ m/^(?:line|match)$/x ) {
       $self->logger->error("get_field(): -type must be line or match.");
       $err = 1;
@@ -167,6 +169,7 @@ The full filename must have been defined.
 
     }
 
+    return '';
   }
 
 =head3 get_line

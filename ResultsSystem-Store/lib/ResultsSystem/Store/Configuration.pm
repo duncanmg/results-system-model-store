@@ -129,11 +129,6 @@ sub get_full_filename {
 
   #***************************************
   my $self = shift;
-  return $self->{FULL_FILENAME} if $self->{FULL_FILENAME};
-  my $system = $self->get_system;
-  if ($system) {
-    $self->set_full_filename("../custom/$system/$system.ini");
-  }
   return $self->{FULL_FILENAME};
 }
 
@@ -316,14 +311,13 @@ sub get_path {
   my @keys        = keys %args;
   my $key         = shift @keys;
   my @valid_paths = (
-    "-csv_files",             "-log_dir",
-                   "-table_dir",
-    "-results_dir",           "-htdocs",
-    "-cgi_dir",               "-root",
-    '-htdocs_full',           '-results_dir_full',
-    '-table_dir_full',        "-season",
-    "-csv_files_with_season", "-cgi_dir_full",
-    "-divisions_file_dir",
+    "-csv_files",        "-log_dir",
+    "-table_dir",        "-results_dir",
+    "-htdocs",           "-cgi_dir",
+    "-root",             '-htdocs_full',
+    '-results_dir_full', '-table_dir_full',
+    "-season",           "-csv_files_with_season",
+    "-cgi_dir_full",     "-divisions_file_dir",
   );
 
   if ( !( any { $key eq $_ } @valid_paths ) ) {
@@ -520,28 +514,6 @@ sub get_season {
 =head2 Behaviour Handling
 
 =cut
-
-=head3 get_calculation
-
-points or average eg $c->get_calculation( -order_by => "Y" );
-
-Controls whether the league tables should be ordered by total points
-or average points.
-
-=cut
-
-#***************************************
-sub get_calculation {
-
-  #***************************************
-  my $self = shift;
-  my %args = (@_);
-  my $v;
-  if ( $args{-order_by} ) {
-    $v = $self->_get_tags->{calculations}[0]{order_by}[0];
-  }
-  return $self->_trim($v);
-}
 
 =head1 INTERNAL (PRIVATE) METHODS
 

@@ -151,22 +151,22 @@ sub set_factory {
   return $self;
 }
 
-=head2 create_set
-
-=cut
-
-#***************************************
-sub create_set {
-
-  #***************************************
-  my $self = shift;
-
-  my @divs = @{$self->get_division_list};
-  foreach my $d(@divs){
-  }
-
-  return $self;
-}
+#=head2 create_set
+#
+#=cut
+#
+##***************************************
+#sub create_set {
+#
+#  #***************************************
+#  my $self = shift;
+#
+#  my @divs = @{$self->get_division_list};
+#  foreach my $d(@divs){
+#  }
+#
+#  return $self;
+#}
 
 =head1 INTERNAL (PRIVATE) METHODS
 
