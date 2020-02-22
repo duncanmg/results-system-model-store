@@ -50,7 +50,7 @@ $mock_configuration2->mock(
   'get_path',
   sub {
     my $h = $_[1];
-    return 'path' if $h eq '-divisions_file_dir';
+    return 'path'    if $h eq '-divisions_file_dir';
     return 'bad_dir' if $h eq '-csv_files_with_season';
   }
 );
@@ -137,6 +137,21 @@ eq_or_diff(
   "get_dates_and_result_filenames_for_division"
 );
 
-throws_ok(sub { $store->set_configuration($mock_configuration2); $store->build_csv_path}, qr/DIR_NOT_FOUND/, "Bad csv path");
+throws_ok( sub { $store->set_configuration($mock_configuration2); $store->build_csv_path },
+  qr/DIR_NOT_FOUND/, "Bad csv path" );
+
+is( $store->get_fixture_list_model( $store->set_fixture_list_model("test") ),
+  "test", "get_fixture_list_model" );
+
+is( $store->get_store_divisions_model( $store->set_store_divisions_model("test2") ),
+  "test2", "get_store_divisions_model" );
+
+is(
+  $store->get_week_data_reader_model_factory(
+    $store->set_week_data_reader_model_factory("test3")
+  ),
+  "test3",
+  "get_week_data_reader_model_factory"
+);
 
 done_testing;
