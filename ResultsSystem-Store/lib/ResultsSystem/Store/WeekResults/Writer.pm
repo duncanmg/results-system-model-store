@@ -5,6 +5,7 @@
   use Data::Dumper;
   use Params::Validate qw/:all/;
   use ResultsSystem::Core::Exception;
+  use Carp qw/ croak/;
 
   use parent qw/ ResultsSystem::Store::WeekResults /;
 
@@ -74,8 +75,11 @@ Returns true on success.
 
     open( my $FP, ">", $ff ) || do {
       $self->logger->error("WeekResults::Writer(): Unable to open file for writing. $ff.");
-      croak ResultsSystem::Core::Exception->new( 'FILENAME_NOT_WRITEABLE',
-        "Unable to open file for writing. $ff" );
+      croak(
+        ResultsSystem::Core::Exception->new(
+          'FILENAME_NOT_WRITEABLE', "Unable to open file for writing. $ff"
+        )
+      );
     };
 
     print $FP join( "\n", @$out );
