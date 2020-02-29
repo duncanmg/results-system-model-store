@@ -13,4 +13,4 @@ my $min_tcm = 0.9;
 eval "use Test::CheckManifest $min_tcm";
 plan skip_all => "Test::CheckManifest $min_tcm required" if $@;
 
-ok_manifest( { exclude => ["$Bin/log/"] } );
+ok_manifest( { exclude => ["$Bin/log/", '/home/duncan/git/results-system-store/ResultsSystem-Store/cover_db'] } );

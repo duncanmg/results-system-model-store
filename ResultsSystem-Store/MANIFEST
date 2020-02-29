@@ -14,6 +14,7 @@ t/data/divisions.xml
 # t/lib/Factory.pm
 t/lib/Helper.pm
 t/Factory.t
+t/data/2016/U9ST_14-May.dat
 t/data/U9N_1-May.dat
 t/data/nfcca.ini
 t/data/U9N_8-May.dat
@@ -21,7 +22,14 @@ t/data/U9N_15-May.dat
 t/data/U9N.csv
 t/Model/FixtureList.t
 t/Model/Store.t
+t/Model/Store/Base.t
+t/Model/Store/Configuration.t
+t/Model/Store/Configuration_2.t
 t/Model/Store/Divisions.t
+t/Model/Store/FixtureList/Set.t
+t/Model/Store/WeekResults.t
+t/Model/Store/WeekResults/Reader.t
+t/Model/Store/WeekResults/Writer.t
 lib/ResultsSystem/Store/Factory.pm
 lib/ResultsSystem/Store/Base.pm
 lib/ResultsSystem/Store/FixtureList.pm
@@ -30,4 +38,3 @@ lib/ResultsSystem/Store/Configuration.pm
 lib/ResultsSystem/Store/FixtureList/Set.pm
 lib/ResultsSystem/Store/WeekResults/Writer.pm
 lib/ResultsSystem/Store/WeekResults/Reader.pm
-
