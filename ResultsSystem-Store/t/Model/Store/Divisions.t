@@ -52,7 +52,7 @@ cmp_deeply(
 
 throws_ok(
   sub { $d->_load_file( \"Mary had a little lamb" ); },
-  qr/Start tag expected/,
+  qr/XML_ERROR,Error reading XML/,
   "String not XML"
 );
 
