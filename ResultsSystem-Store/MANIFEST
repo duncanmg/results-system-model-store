@@ -30,6 +30,8 @@ t/Model/Store/FixtureList/Set.t
 t/Model/Store/WeekResults.t
 t/Model/Store/WeekResults/Reader.t
 t/Model/Store/WeekResults/Writer.t
+t/log/results_system201704.log
+t/log/results_system201711.log
 lib/ResultsSystem/Store/Factory.pm
 lib/ResultsSystem/Store/Base.pm
 lib/ResultsSystem/Store/FixtureList.pm
