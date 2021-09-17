@@ -11,7 +11,6 @@ t/pod.t
 ignore.txt
 xt/boilerplate.t
 t/data/divisions.xml
-# t/lib/Factory.pm
 t/lib/Helper.pm
 t/Factory.t
 t/data/2016/U9ST_14-May.dat
@@ -30,8 +29,7 @@ t/Model/Store/FixtureList/Set.t
 t/Model/Store/WeekResults.t
 t/Model/Store/WeekResults/Reader.t
 t/Model/Store/WeekResults/Writer.t
-t/log/results_system201704.log
-t/log/results_system201711.log
+t/ZZ_clean.t
 lib/ResultsSystem/Store/Factory.pm
 lib/ResultsSystem/Store/Base.pm
 lib/ResultsSystem/Store/FixtureList.pm
